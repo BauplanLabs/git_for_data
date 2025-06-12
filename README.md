@@ -46,4 +46,4 @@ TBC
 
 ## Acknowledgements
 
-Our interest for "git-for-data" started at very beginning of Bauplan, given our focus on [reproducible data pipelines](https://arxiv.org/pdf/2404.13682). However, we would not have been able to reach such a maturity without our 2025 summer interns: Manuel Barros (CMU), Jinlang Wang (Umadison), Weiming Sheng (Columbia), who carried out a fantastic job in exploring both the formal semantics and the Alloy implementation of these concepts.
+Our interest in "git-for-data" started at the very beginning of Bauplan, given our focus on [reproducible data pipelines](https://arxiv.org/pdf/2404.13682). However, we would not have been able to reach such a maturity without our 2025 summer interns: Manuel Barros (CMU), Jinlang Wang (Umadison), Weiming Sheng (Columbia), who carried out a fantastic job in exploring both the formal semantics and the Alloy implementation of these concepts.
