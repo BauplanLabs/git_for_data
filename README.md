@@ -32,7 +32,7 @@ A very simple Alloy model to demonstrate the basic interplay between table versi
 
 The companion blog post (LINK TBC) discusses the different in the commit history between a three way merge and a fast-forward merge. You can reproduce the visual instances in the blog post by commenting / uncommenting `standardMerge` (you'll get [this](/src/blog_series/part1/images/3way.png)) and `ffMerge` (you'll get [this](/src/blog_series/part1/images/ff.png)) at the end of the `gsd.als` file.
 
-The script in the `bpln` folder showcases how bauplan currently works, i.e. leveraging lakehouse management in Python, data branching, and auditability APIs to programmatically investigate the commit history through typed Python objects.
+The `commit_api.py` script in the `bpln` folder showcases how bauplan currently works, i.e. leveraging lakehouse management in Python, data branching, and auditability APIs to programmatically investigate the commit history through typed Python objects. If you have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed, you can run the script with `uv run commit_api.py --table_name my_alloy_table` (make sure `my_alloy_table` is a non-existing table in your account).
 
 Can you spot the differences between the implementation and the formal specification?
 
