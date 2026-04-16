@@ -1,48 +1,59 @@
 # Git for Data
-A collection of "Git-for-Data" snippets, models, resources
+
+A collection of "Git-for-Data" snippets, models, and resources.
 
 ## Overview
+
 This repository contains a collection of code snippets, models, and resources related to "Git-for-Data," (roughly understood as) the idea that we should treat data assets similarly to how we treat code assets in software development.
 
-In particular, it explores the idea of applying Git-like version control concepts to data management, in the context of modern cloud lakehouses (e.g. the [Bauplan paper](https://arxiv.org/pdf/2404.13682) on reproducible cloud pipelines) and open formats (e.g. [Apache Iceberg](https://iceberg.apache.org/)).
+In particular, it explores the idea of applying Git-like version control concepts to data management, in the context of modern cloud lakehouses — with a special focus on agentic workloads, coding agents, and the broader question of how data systems should behave when the primary "user" is an autonomous agent rather than a human (e.g. [Building a Correct-by-Design Lakehouse](https://arxiv.org/abs/2602.02335) and [Trustworthy AI in the Agentic Lakehouse](https://arxiv.org/abs/2511.16402)), on top of open formats such as [Apache Iceberg](https://iceberg.apache.org/).
 
-Of course, "Git-for-Data" per se is not a new phrase, and a quick Google search highlights a few existing projects. Aside from high-level similarities, however, they all differ in scope, implementation, and intended usage: one of the main motivations for this project (and therefore the content in this repository) is to provide a precise definition of fuzzy concepts, and promote a more formal, shared understanding of the core primitives of a data management system built around "version control."
+Of course, "Git-for-Data" per se is not a new phrase, and a quick Google search highlights a few existing projects. Aside from high-level similarities, however, they all differ in scope, implementation, and intended usage: one of the main motivations for this project is to provide a precise definition of fuzzy concepts, and promote a more formal, shared understanding of the core primitives of a data management system built around "version control."
 
-## Setup
+## Formal modeling: a guided tour
 
-Depending on the project, you may need a few tools to run the code yourself if you wish to do so. Basic dependencies include Bauplan and Alloy.
+We model Bauplan's Git-for-Data semantics in [Alloy 6](https://alloytools.org/), building progressively. Each stage adds one concept and either proves an invariant or surfaces a counterexample. Run them in order:
 
-### Install Alloy
+1. [`01_commits_and_branches.als`](./src/alloy/01_commits_and_branches.als) — snapshots, commits, branches. Lifts Iceberg snapshots to lakehouse-wide commits; branches as movable pointers; per-table revert. Asserts acyclicity, commit immutability, branch isolation.
 
-Alloy ships as a self-contained executable: you can download it [here](https://alloytools.org/download.html). The code in this repo has been written and tested with Alloy 6.2.0.
+2. [`02_merges.als`](./src/alloy/02_merges.als) — fast-forward and 3-way merge. Without the conflict-free guard, Alloy finds a trace where one side's write is silently overwritten; with it, the counterexample disappears.
 
-To learn more about Alloy, you can check out the [official book](https://alloytools.org/book.html).
+3. [`03_transactions.als`](./src/alloy/03_transactions.als) — pipelines as atomic publish. A naive run on `Main` that fails mid-way leaves Main half-written; wrapping the run in a temp branch and merging on success keeps Main consistent.
 
-### Get Bauplan
+4. [`04_unintended.als`](./src/alloy/04_unintended.als) — the first unintended model. Even with the transactional wrapper, a *second actor* can fork off the aborted commit of a failed run and merge it into `Main`. Branches are too permissive an abstraction for transactional pipelines.
 
-Get a Bauplan free sandbox account [here](https://accounts.bauplanlabs.com/sign-up): follow the instructions to create an API key, install the CLI / SDK in a Python virtual environment and run the [tutorial](https://docs.bauplanlabs.com/en/latest/) to get acquainted with the platform.
+5. [`05_revert_corruption.als`](./src/alloy/05_revert_corruption.als) — the second unintended model. Transactional pipeline + per-table revert: each is individually safe, but a user can revert one table from a multi-table run, leaving Main in a state no run could have produced.
 
-## Content
+## Previous iterations: the original blog series
 
-### Blog Series
+The two-part blog series — [Part 1](https://www.bauplanlabs.com/post/git-for-data-formal-semantics-of-branching-merging-and-rollbacks-part-1) and [Part 2](https://www.bauplanlabs.com/post/git-for-data-formal-semantics-part-2-branching-merging-and-rollbacks) — preceded the latest models above:
 
-#### Git for Data: Part 1
+- **Part 1**'s original model still lives at [`src/blog_series/part1/alloy/gsd.als`](./src/blog_series/part1/alloy/gsd.als). The SDK example is preserved at [`src/blog_series/part1/bpln/commit_api.py`](./src/blog_series/part1/bpln/commit_api.py); a newer, more comprehensive walkthrough is available [here](https://github.com/BauplanLabs/bauplan/tree/main/examples/learn/05-advanced-git-for-data).
+- **Part 2** is best understood as the combination of stages 3 (transactional pipelines) and 4 (the nested-branch unintended model).
 
-A very simple Alloy model to demonstrate the basic interplay between table versions ("snapshots"), lakehouse "commits", and how people can collaborate through "feature branches" using Git-style merges at the end.
+## Bugbash slides
 
-The companion blog post (LINK TBC) discusses the difference in the commit history between a three-way merge and a fast-forward merge. You can reproduce the visual instances in the blog post by commenting / uncommenting `standardMerge` (you'll get [this](/src/blog_series/part1/images/3way.png)) and `ffMerge` (you'll get [this](/src/blog_series/part1/images/ff.png)) at the end of the `gsd.als` file.
+The talk slides live in [`bugbash/`](./bugbash/) — open `bugbash/index.html` in any browser. The seminar abstract is also there. The talk was delivered at the [Bugbash conference 2026](https://antithesis.com/bugbash/conference2026/).
 
-The `commit_api.py` script in the `bpln` folder showcases how Bauplan currently works, i.e. demonstrates Bauplan’s Python-based APIs for lakehouse management, data branching, and auditability APIs to programmatically investigate the commit history through typed Python objects. If you have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed, you can run the script with `uv run commit_api.py --table_name my_alloy_table` (make sure `my_alloy_table` does not already exist in your account).
+## Running the models
 
-Can you spot the differences between the implementation and the formal specification?
+### Setup
 
-#### Git for Data: Part 2
+- Alloy ships as a self-contained executable: you can download it [here](https://alloytools.org/download.html). The code in this repo has been written and tested with Alloy 6.2.0. To learn more about Alloy, you can check out the [official book](https://alloytools.org/book.html).
+- Get a Bauplan sandbox account [here](https://accounts.bauplanlabs.com/sign-up): follow the instructions to create an API key and install the CLI / SDK.
 
-TBC
+### How to run the Alloy models
 
-### Paper
+**GUI (recommended for visualizing traces):** open any `src/alloy/*.als` file in Alloy Analyzer 6, then execute each `check` and `run` from the Execute menu. Each file's header says what to expect.
 
-TBC
+**Headless:**
+```
+java -Dsat4j=yes -cp /path/to/org.alloytools.alloy.dist.jar \
+     edu.mit.csail.sdg.alloy4whole.SimpleCLI src/alloy/01_commits_and_branches.als
+```
+
+`SAT` = instance found (run produced a trace, or assertion has a counterexample).
+`UNSAT` = no instance (assertion holds within scope, or run is over-constrained).
 
 ## Acknowledgements
 
