@@ -33,7 +33,7 @@ The two-part blog series — [Part 1](https://www.bauplanlabs.com/post/git-for-d
 
 ## Bugbash slides
 
-The talk slides live in [`bugbash/`](./bugbash/) — open `bugbash/index.html` in any browser. The seminar abstract is also there. The talk was delivered at the [Bugbash conference 2026](https://antithesis.com/bugbash/conference2026/).
+The talk slides live in [`bugbash/`](./bugbash/) as a PDF. The seminar abstract is also there. The talk was delivered at the [Bugbash conference 2026](https://antithesis.com/bugbash/conference2026/).
 
 ## Running the models
 

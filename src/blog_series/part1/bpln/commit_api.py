@@ -16,40 +16,42 @@ def run_scenario(
         t_branch = bpln_client.create_branch(branch=branch_name, from_ref=starting_branch_name)
         print(f"Created branch {t_branch.name} at {datetime.now()} from {starting_branch_name}.")
         # 2. create a table - this will create a commit
-        t_table = client.create_table(
+        t_table = bpln_client.create_table(
             table=table_name,
             search_uri=s3_uri,
             branch=branch_name
         )
         print(f"Created table {t_table.name} at {datetime.now()} in branch {branch_name}.")
-        # 3. check the commit in the history 
-        last_commit = client.get_commits(
-            branch_name, 
-            filter_by_author_name=full_user_name, 
+        # 3. check the commit in the history
+        last_commit = next(bpln_client.get_commits(
+            branch_name,
+            filter_by_author_name=full_user_name,
             limit=1
-        )[0]
+        ))
         print(f"Last commit was {last_commit.ref}: {last_commit.message}")
-        # the message should contain the table name that we just created 
+        # the message should contain the table name that we just created
         # e.g. Create ICEBERG_TABLE bauplan.apoalloytable
         # let's check that
-        assert table_name in last_commit.message, f"Table name {table_name} not found in commit message."
+        assert last_commit.message is not None and table_name in last_commit.message, \
+                f"Table name {table_name} not found in commit message."
         # 4. merge the branch into the starting branch
-        client.merge_branch(
+        bpln_client.merge_branch(
             source_ref=branch_name,
             into_branch=starting_branch_name,
         )
         # check the commit again
-        # 4. check the commit in the history 
-        last_commit = client.get_commits(
-            starting_branch_name, 
-            filter_by_author_name=full_user_name, 
+        # 4. check the commit in the history
+        last_commit = next(bpln_client.get_commits(
+            starting_branch_name,
+            filter_by_author_name=full_user_name,
             limit=1
-        )[0]
+        ))
         print(f"Last commit was {last_commit.ref}: {last_commit.message}")
         # the message should contain the branch name that we just merged
         # e.g. Merge jacopo.alloy_blog_1749811746 into main
         # let's check that
-        assert branch_name in last_commit.message, f"Branch name {branch_name} not found in commit message."
+        assert last_commit.message is not None and branch_name in last_commit.message, \
+                f"Branch name {branch_name} not found in commit message."
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
@@ -81,10 +83,10 @@ if __name__ == "__main__":
     # start the bauplan client and do some basic checks
     client = bauplan.Client(profile=profile)
     user = client.info().user
+    assert user is not None, "Could not resolve user info from bauplan client."
     username = user.username
     full_name = user.full_name
-    # make sure we have all the info available
-    assert username is not None and user is not None
+    assert username is not None
     # make sure the table does NOT exist already in the starting branch
     assert not client.has_table(table=table_name, ref=starting_branch), \
             f"Table {table_name} already exists in branch {starting_branch}. Pick a new one!"
