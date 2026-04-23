@@ -165,6 +165,10 @@ run RevertDemo {
     one t: Table {
         createSnapshot[Main, t];
         createSnapshot[Main, t];
-        some src: Commit | revertTable[Main, t, src]
+        some src: Commit {
+            src in Main.commit.^parent
+            t.(src.tables) != t.(Main.commit.tables)
+            revertTable[Main, t, src]
+        }
     }
 } for 5 but 1 Table, 5 steps

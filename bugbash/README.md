@@ -1,8 +1,8 @@
 # Bugbash seminar
 
-Slides and abstract for the *(Almost) correct-by-design* talk.
+Slides and handout for the *(Almost) correct-by-design* talk.
 
-- `index.html` — the reveal.js slide deck. Open in any browser; no build step.
-- `bugbash_seminar_2026.pdf` — the seminar abstract.
+- `bugbash_seminar_slides.pdf` — the slide deck for the talk.
+- `bugbash_seminar_handout_2026.pdf` — the seminar handout.
 
 The slides walk through the staged Alloy progression in [`../src/alloy/`](../src/alloy/).
